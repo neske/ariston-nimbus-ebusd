@@ -1,0 +1,379 @@
+# Dashboard for the Ariston Nimbus S NET R32 80S-T over eBUS.
+# Settings -> Dashboards -> Add dashboard -> New dashboard from scratch, open it,
+# ⋮ -> Edit dashboard -> ⋮ -> Raw configuration editor, paste this file and save.
+# Entity IDs: see the header of ../packages/ariston_nimbus_ebusd.yaml.
+title: eBUS
+views:
+  - title: Overview
+    path: overview
+    icon: mdi:view-dashboard
+    type: sections
+    max_columns: 3
+    badges:
+      - type: entity
+        entity: binary_sensor.heating_ebusd_ebusd_signal
+        name: eBUS signal
+        show_name: true
+      - type: entity
+        entity: sensor.heating_ebusd_energymgr_energy_manager_status
+        name: Energy manager
+        show_name: true
+      - type: entity
+        entity: sensor.heating_ebusd_heatpump_heat_pump_status
+        name: Heat pump
+        show_name: true
+      - type: entity
+        entity: sensor.heating_ebusd_energymgr_outdoor_temperature
+        name: Outdoor
+        show_name: true
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Heat pump
+            icon: mdi:heat-pump
+          - type: tile
+            entity: sensor.heating_ebusd_heatpump_flow_temperature
+            name: Flow
+            grid_options: {columns: 4}
+          - type: tile
+            entity: sensor.heating_ebusd_heatpump_return_temperature
+            name: Return
+            grid_options: {columns: 4}
+          - type: tile
+            entity: sensor.heat_pump_delta_t
+            name: Delta T
+            icon: mdi:delta
+            grid_options: {columns: 4}
+          - type: tile
+            entity: sensor.heating_ebusd_heatpump_water_flow
+            name: Water flow
+            icon: mdi:water-pump
+            grid_options: {columns: 6}
+          - type: tile
+            entity: sensor.heating_ebusd_heatpump_compressor_frequency
+            name: Compressor
+            icon: mdi:sine-wave
+            grid_options: {columns: 6}
+          - type: tile
+            entity: sensor.heating_ebusd_heatpump_electrical_power
+            name: Electrical power
+            icon: mdi:flash
+            grid_options: {columns: 6}
+          - type: tile
+            entity: sensor.heat_pump_heat_output
+            name: Heat output
+            grid_options: {columns: 6}
+          - type: gauge
+            entity: sensor.heat_pump_cop
+            name: COP (instantaneous)
+            min: 0
+            max: 7
+            needle: true
+            severity: {red: 0, yellow: 2.5, green: 3.5}
+          - type: tile
+            entity: binary_sensor.heat_pump_defrost
+            name: Defrost
+            icon: mdi:snowflake-melt
+            grid_options: {columns: 4}
+          - type: tile
+            entity: sensor.heat_pump_defrosts_today
+            name: Defrosts today
+            grid_options: {columns: 4}
+          - type: tile
+            entity: sensor.heat_pump_defrost_time_today
+            name: Defrost time today
+            grid_options: {columns: 4}
+          - type: heading
+            heading: >-
+              COP is an estimate: heat from water flow × ΔT, divided by the outdoor unit's electrical power
+              (the indoor unit's own consumption is not included, so it reads slightly high).
+            heading_style: subtitle
+      - type: grid
+        cards:
+          - type: heading
+            heading: Zone 1
+            icon: mdi:home-thermometer
+          - type: thermostat
+            entity: climate.nimbus_zone_1
+            name: Zone 1 (local, over eBUS)
+            features:
+              - type: climate-hvac-modes
+                hvac_modes: ["off", "heat", "auto"]
+          - type: heading
+            heading: >-
+              A change is sent as a broadcast on the bus, exactly as the Sensys does it. The energy manager
+              adopts it in 6–16 s; the mode state can take a few minutes to come back. Every change is
+              written to EEPROM, so do not change it from frequent automations. Temperature = comfort
+              temperature (used in Manual mode).
+            heading_style: subtitle
+          - type: tile
+            entity: sensor.heating_ebusd_sensys_zone_1_room_temperature
+            name: Room (Sensys)
+            grid_options: {columns: 6}
+          - type: tile
+            entity: sensor.heating_ebusd_energymgr_zone_1_room_setpoint
+            name: Room setpoint
+            icon: mdi:thermostat
+            grid_options: {columns: 6}
+          - type: tile
+            entity: sensor.heating_ebusd_energymgr_zone_1_mode
+            name: Zone mode
+            grid_options: {columns: 6}
+          - type: tile
+            entity: binary_sensor.heating_ebusd_energymgr_zone_1_heat_request
+            name: Heat request
+            grid_options: {columns: 6}
+          - type: tile
+            entity: sensor.heating_ebusd_energymgr_zone_1_calculated_flow_target
+            name: Flow target (curve)
+            icon: mdi:chart-bell-curve
+            grid_options: {columns: 6}
+          - type: tile
+            entity: sensor.heating_ebusd_energymgr_heating_circuit_pressure
+            name: Circuit pressure
+            icon: mdi:gauge
+            grid_options: {columns: 6}
+      - type: grid
+        cards:
+          - type: heading
+            heading: Energy
+            icon: mdi:lightning-bolt
+          - type: statistic
+            entity: sensor.heating_ebusd_energymgr_heat_pump_energy_consumed
+            name: Today
+            stat_type: change
+            period: {calendar: {period: day}}
+            grid_options: {columns: 6}
+          - type: statistic
+            entity: sensor.heating_ebusd_energymgr_heat_pump_energy_consumed
+            name: Yesterday
+            stat_type: change
+            period: {calendar: {period: day, offset: -1}}
+            grid_options: {columns: 6}
+          - type: statistic
+            entity: sensor.heating_ebusd_energymgr_heat_pump_energy_consumed
+            name: This week
+            stat_type: change
+            period: {calendar: {period: week}}
+            grid_options: {columns: 6}
+          - type: statistic
+            entity: sensor.heating_ebusd_energymgr_heat_pump_energy_consumed
+            name: This month
+            stat_type: change
+            period: {calendar: {period: month}}
+            grid_options: {columns: 6}
+          - type: tile
+            entity: sensor.heating_ebusd_heatpump_electrical_power
+            name: Power now
+            icon: mdi:flash
+            grid_options: {columns: 6}
+          - type: tile
+            entity: sensor.heating_ebusd_energymgr_heat_pump_energy_consumed
+            name: Counter (total)
+            icon: mdi:counter
+            grid_options: {columns: 6}
+          - type: tile
+            entity: sensor.heat_pump_heat_today
+            name: Heat today
+            icon: mdi:fire
+            grid_options: {columns: 4}
+          - type: tile
+            entity: sensor.heat_pump_energy_today
+            name: Electricity today
+            icon: mdi:lightning-bolt
+            grid_options: {columns: 4}
+          - type: tile
+            entity: sensor.heat_pump_cop_today
+            name: COP today
+            icon: mdi:chart-line-variant
+            grid_options: {columns: 4}
+          - type: statistics-graph
+            title: "Daily: electricity and heat (kWh)"
+            entities:
+              - entity: sensor.heating_ebusd_energymgr_heat_pump_energy_consumed
+                name: Electricity
+              - entity: sensor.heat_pump_heat_total
+                name: Heat
+            stat_types: [change]
+            chart_type: bar
+            period: day
+            days_to_show: 14
+            grid_options: {columns: 12, rows: 5}
+          - type: heading
+            heading: >-
+              Power is register 7c4f of the outdoor unit, the counter is 52d9+53d9 of the energy manager.
+              Daily COP = heat today (flow × ΔT, summed, defrost subtracted) / electricity today; shown from
+              0.2 kWh on and reset at midnight.
+            heading_style: subtitle
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: Last 12 hours
+            icon: mdi:chart-line
+          - type: history-graph
+            title: Power
+            hours_to_show: 12
+            grid_options: {columns: 12, rows: 5}
+            entities:
+              - {entity: sensor.heating_ebusd_heatpump_electrical_power, name: Electrical (W), color: amber}
+              - {entity: sensor.heating_ebusd_heatpump_compressor_frequency, name: Compressor (Hz), color: purple}
+          - type: history-graph
+            title: COP and heat output
+            hours_to_show: 12
+            grid_options: {columns: 12, rows: 5}
+            entities:
+              - {entity: sensor.heat_pump_cop, name: COP, color: green}
+              - {entity: sensor.heat_pump_heat_output, name: Heat (kW), color: deep-orange}
+          - type: history-graph
+            title: Room and outdoor
+            hours_to_show: 12
+            grid_options: {columns: 12, rows: 5}
+            entities:
+              - {entity: sensor.heating_ebusd_sensys_zone_1_room_temperature, name: Room, color: teal}
+              - {entity: sensor.heating_ebusd_energymgr_zone_1_room_setpoint, name: Setpoint, color: grey}
+              - {entity: sensor.heating_ebusd_energymgr_outdoor_temperature, name: Outdoor, color: light-blue}
+
+  - title: Water temperatures
+    path: water-temperatures
+    icon: mdi:thermometer-water
+    type: sections
+    max_columns: 4
+    dense_section_placement: false
+    sections:
+      - type: grid
+        column_span: 4
+        cards:
+          - type: history-graph
+            title: Water temperatures
+            hours_to_show: 24
+            grid_options: {columns: full, rows: 12}
+            entities:
+              - {entity: sensor.heating_ebusd_heatpump_flow_temperature, name: Flow (heat pump outlet), color: red}
+              - {entity: sensor.heating_ebusd_energymgr_ch_flow_temperature_energy_manager_sensor, name: Flow (energy manager), color: pink}
+              - {entity: sensor.heating_ebusd_heatpump_return_temperature, name: Return, color: blue}
+              - {entity: sensor.heating_ebusd_energymgr_zone_1_calculated_flow_target, name: Flow target, color: orange}
+          - type: history-graph
+            title: Delta T (flow − return)
+            hours_to_show: 24
+            grid_options: {columns: full, rows: 6}
+            entities:
+              - {entity: sensor.heat_pump_delta_t, name: Delta T, color: purple}
+
+  - title: Heat pump
+    path: heat-pump
+    icon: mdi:heat-pump
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Refrigerant circuit
+            icon: mdi:snowflake-thermometer
+          - {type: tile, entity: sensor.heating_ebusd_heatpump_evaporator_temperature, name: Evaporator, grid_options: {columns: 6}}
+          - {type: tile, entity: sensor.heating_ebusd_heatpump_suction_temperature, name: Compressor suction, grid_options: {columns: 6}}
+          - {type: tile, entity: sensor.heating_ebusd_heatpump_discharge_temperature, name: Compressor discharge, grid_options: {columns: 6}}
+          - {type: tile, entity: sensor.heating_ebusd_heatpump_condenser_outlet_temperature, name: Condenser outlet, grid_options: {columns: 6}}
+          - {type: tile, entity: sensor.heating_ebusd_heatpump_teo_temperature, name: TEO, grid_options: {columns: 6}}
+          - {type: tile, entity: sensor.heating_ebusd_heatpump_expansion_valve_position, name: Expansion valve, icon: mdi:valve, grid_options: {columns: 6}}
+      - type: grid
+        cards:
+          - type: heading
+            heading: Hydraulics and energy
+            icon: mdi:water-thermometer
+          - {type: tile, entity: sensor.heating_ebusd_energymgr_ch_flow_temperature_energy_manager_sensor, name: Flow (energy manager)}
+          - {type: tile, entity: sensor.heating_ebusd_energymgr_buffer_low_temperature, name: Return (energy manager), grid_options: {columns: 6}}
+          - {type: tile, entity: sensor.heating_ebusd_energymgr_flow_temperature_setpoint, name: Flow setpoint, grid_options: {columns: 6}}
+          - {type: tile, entity: sensor.heating_ebusd_energymgr_heat_pump_energy_consumed, name: Energy counter, icon: mdi:counter, grid_options: {columns: 12}}
+          - {type: tile, entity: binary_sensor.heating_ebusd_energymgr_quiet_mode_enabled, name: Quiet mode, grid_options: {columns: 6}}
+          - {type: tile, entity: binary_sensor.heating_ebusd_energymgr_heating_enabled, name: Heating enabled, grid_options: {columns: 6}}
+      - type: grid
+        cards:
+          - type: heading
+            heading: Refrigerant circuit, 6 h
+            icon: mdi:chart-line
+          - type: history-graph
+            hours_to_show: 6
+            grid_options: {columns: 12, rows: 6}
+            entities:
+              - {entity: sensor.heating_ebusd_heatpump_discharge_temperature, name: Discharge, color: red}
+              - {entity: sensor.heating_ebusd_heatpump_condenser_outlet_temperature, name: Condenser, color: orange}
+              - {entity: sensor.heating_ebusd_heatpump_suction_temperature, name: Suction, color: blue}
+              - {entity: sensor.heating_ebusd_heatpump_evaporator_temperature, name: Evaporator, color: cyan}
+          - type: history-graph
+            hours_to_show: 6
+            grid_options: {columns: 12, rows: 4}
+            entities:
+              - {entity: sensor.heating_ebusd_heatpump_expansion_valve_position, name: Expansion valve, color: purple}
+          - type: history-graph
+            title: Defrost and heat output (negative = heat taken from the water)
+            hours_to_show: 6
+            grid_options: {columns: 12, rows: 5}
+            entities:
+              - {entity: binary_sensor.heat_pump_defrost, name: Defrost}
+              - {entity: sensor.heat_pump_heat_output, name: Heat output (kW), color: deep-orange}
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: Compressor and outdoor temperature
+            icon: mdi:sine-wave
+          - type: history-graph
+            title: Last 24 hours
+            hours_to_show: 24
+            grid_options: {columns: full, rows: 8}
+            entities:
+              - {entity: sensor.heating_ebusd_heatpump_compressor_frequency, name: Compressor (Hz), color: purple}
+              - {entity: sensor.heating_ebusd_energymgr_outdoor_temperature, name: Outdoor (°C), color: light-blue}
+          - type: statistics-graph
+            title: "Hourly, 14 days: lowest and mean frequency while running, outdoor temperature"
+            entities:
+              - {entity: sensor.heat_pump_compressor_running_frequency, name: Compressor}
+              - {entity: sensor.heating_ebusd_energymgr_outdoor_temperature, name: Outdoor}
+            stat_types: [min, mean]
+            chart_type: line
+            period: hour
+            days_to_show: 14
+            grid_options: {columns: full, rows: 8}
+          - type: heading
+            heading: >-
+              The lowest frequency is taken only while the compressor runs. At 1–2 °C outdoor it did not go
+              below 23 Hz; in much warmer weather 18 Hz was seen.
+            heading_style: subtitle
+
+  - title: Settings
+    path: settings
+    icon: mdi:tune
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Zone 1 (from the bus, read only)
+            icon: mdi:home-thermometer-outline
+          - type: entities
+            entities:
+              - {entity: sensor.heating_ebusd_energymgr_zone_1_mode, name: Mode}
+              - {entity: sensor.heating_ebusd_energymgr_zone_1_mode_state, name: Mode state}
+              - {entity: sensor.heating_ebusd_energymgr_zone_1_comfort_temperature, name: Comfort temperature}
+              - {entity: sensor.heating_ebusd_energymgr_zone_1_reduced_temperature, name: Reduced temperature}
+              - {entity: sensor.heating_ebusd_energymgr_zone_1_room_setpoint, name: Current room setpoint}
+              - {entity: sensor.heating_ebusd_energymgr_zone_1_fixed_flow_temperature, name: Fixed flow temperature}
+              - {entity: sensor.heating_ebusd_energymgr_zone_1_heating_curve_offset, name: Heating curve offset}
+              - {entity: binary_sensor.heating_ebusd_energymgr_automatic_thermoregulation, name: Automatic thermoregulation}
+              - {entity: binary_sensor.heating_ebusd_sensys_zone_1_override_active, name: Temporary override}
+      - type: grid
+        cards:
+          - type: heading
+            heading: eBUS connection
+            icon: mdi:lan-connect
+          - type: entities
+            entities:
+              - {entity: binary_sensor.heating_ebusd_ebusd_running, name: ebusd running}
+              - {entity: binary_sensor.heating_ebusd_ebusd_signal, name: Bus signal}
+              - {entity: sensor.heating_ebusd_ebusd_uptime, name: ebusd uptime}
+              - {entity: sensor.heating_ebusd_energymgr_hv_input_1_configuration, name: HV input 1}
+              - {entity: binary_sensor.heating_ebusd_energymgr_hv_input_1_state, name: HV input 1 state}

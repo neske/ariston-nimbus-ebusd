@@ -1,0 +1,82 @@
+# Ariston Nimbus S NET R32 80S-T: definitions for the frame layouts seen on this installation's bus.
+# Written by hand from an ebusd raw capture (2026-11-23). Register meanings follow ariston.csv
+# (koszoaron/ebusd-ariston-nimbus), but the definitions are keyed on the layouts this system sends.
+# The upstream definitions they replace are commented out in ariston.csv ("#local-disabled").
+#
+# Line types used here:
+#   b  = broadcast sent by another device (passive)
+#   u  = read sent by another master, ebusd decodes question and answer (passive)
+#   r1 / r5 = ebusd polls itself (priority 1 = every poll cycle, 5 = every 5th), read only
+#   w  = write, sent only when HA publishes to ebusd/<circuit>/<name>/set
+# ebusd decodes a frame that is LONGER than the definition (trailing bytes ignored) but not a shorter one,
+# so every passive definition covers only the common prefix of the layouts seen.
+#
+# Notes on this system:
+# - no buffer tank: 759e (buffer high) reads 0x7fff, 769e ("buffer low" upstream) echoes the heat pump
+#   return one cycle later. The upstream buffer_high_temp* definitions are disabled (one misread 649f).
+# - the energy manager does not poll the heat pump (1e) on this bus. Heat pump values only appear when
+#   the Light Gateway (7f) reads them for the cloud, the Sensys (70) reads d140+ca46 every 10 s, or a
+#   Sensys menu is open. That is why the r1 groups below exist.
+#
+# type,circuit,name,comment,QQ,ZZ,PBSB,ID,field,part,type,divider/values,unit,comment
+
+# ===== energymgr broadcasts (13 -> fe) =====
+# 2010 769e [+...]; 769e follows the heat pump return one cycle later
+b,energymgr,buffer_low_temp,Buffer low temperature,13,fe,2010,769e,buffer_low_temp,m,SIN,10,°C,Buffer low temperature,,m,IGN:1,,,
+# 2010 0191 [+0291+0391+0491]
+b,energymgr,z1_heat_request_onoff,Zone 1 heat request,13,fe,2010,0191,z1_heat_request_onoff,m,onoff,,,Zone 1 heat request,,m,IGN:1,,,
+# 2010 c194+6996+(d0f6|c294)
+b,energymgr,z1_mode_state,Zone 1 mode state,13,fe,2010,c194,z1_mode_state,m,energymgr_c194_values,,,Zone 1 mode state,,m,IGN:1,,,,,m,IGN:2,,,6996,z1_desired_temp_alt,m,SIN,10,°C,Zone 1 room setpoint (alt. layout),,m,IGN:1,,,
+# 2010 6047+6197 [+6297]; seen every ~40 s
+b,energymgr,grp_6047_6197,2010 broadcast 6047+6197,13,fe,2010,6047,flow_setpoint_alt,m,SIN,10,°C,Flow temperature setpoint (alt. layout),,m,IGN:1,,,,,m,IGN:2,,,6197,z1_flow_target_calc,m,SIN,10,°C,Zone 1 calculated flow target,,m,IGN:1,,,
+# 2020 settings broadcast (every 30 min) 6071+6171+6471
+b,energymgr,grp_6071_6171_6471,2020 broadcast 6071+6171+6471,13,fe,2020,6071,z1_lwt_max,m,SIN,10,°C,Zone 1 max flow temperature,,m,IGN:2,,,6171,z1_lwt_min,m,SIN,10,°C,Zone 1 min flow temperature,,m,IGN:2,,,6471,z1_heat_curve_offset_bc,m,SIN,10,°C,Zone 1 heating curve offset (settings broadcast)
+
+# ===== sensys broadcasts (70 -> fe) =====
+# 200f / 2010 7118 = zone 1 room temperature (Sensys probe)
+b,sensys,z1_room_temp_200f,Zone 1 room temperature,70,fe,200f,7118,z1_room_temp,m,SIN,10,°C,Zone 1 room temperature,,m,IGN:1,,,
+b,sensys,z1_room_temp_2010,Zone 1 room temperature (alt. layout),70,fe,2010,7118,z1_room_temp,m,SIN,10,°C,Zone 1 room temperature,,m,IGN:1,,,
+
+# ===== heat pump (1e) reads by the Sensys / gateway =====
+# 70 -> 1e every 10 s: d140+ca46
+u,heatpump,grp_d140_ca46,2000 read of d140+ca46,,1e,2000,d140ca46,,s,IGN:1,,,,,s,IGN:1,,,d140 not exposed: config counter,heatpump_status,s,heatpump_ca46_values,,,Heat pump status
+# Polled by ebusd (r1). With --pollinterval=5 and 6 polled messages each one is read about every 30-36 s.
+# Same 2000 layouts the Light Gateway already sends to 1e; read only. Also decoded when the gateway reads them.
+r1,heatpump,grp_7610_7710_6e13,2000 read of 7610+7710+6e13,,1e,2000,761077106e13,,s,IGN:1,,,,hp_flow_temperature,s,SIN,10,°C,Flow temperature,hp_return_temperature,s,SIN,10,°C,Return temperature,flow,s,SIN,10,L/min,Water flow
+r1,heatpump,grp_7910_7117_7217,2000 read of 7910+7117+7217,,1e,2000,791071177217,,s,IGN:1,,,,hp_evaporator_temperature,s,SIN,10,°C,Evaporator temperature,hp_condenser_outlet_temperature,s,SIN,10,°C,Condenser outlet temperature,hp_suction_temperature,s,SIN,10,°C,Suction temperature
+r1,heatpump,grp_7317_ca46_cb46,2000 read of 7317+ca46+cb46,,1e,2000,7317ca46cb46,,s,IGN:1,,,,hp_discharge_temperature,s,SIN,10,°C,Discharge temperature,heatpump_status,s,heatpump_ca46_values,,,Heat pump status,compressor_frequency,s,UCH,,Hz,Compressor frequency
+r1,heatpump,grp_704f_7c4f,2000 read of 704f+7c4f,,1e,2000,704f7c4f,,s,IGN:1,,,,expansion_valve,s,SIN,,,Expansion valve position,hp_power,s,SIN,,W,Electrical power
+
+# ===== pressure (70 -> 18 every 10 s) =====
+# 7547 = heating circuit pressure, raw /10 = bar (13 -> 1.3 bar; confirmed against the Ariston cloud)
+u,energymgr,grp_4dfd_7547_c700,2000 read of 4dfd+7547+c700,,18,2000,4dfd7547c700,,s,IGN:1,,,,,s,IGN:2,,,4dfd not exposed: unknown,ch_pressure,s,SIN,10,bar,Heating circuit pressure,,s,IGN:1,,,c700 not exposed
+u,energymgr,grp_7547_c700,2000 read of 7547+c700,,18,2000,7547c700,,s,IGN:1,,,,ch_pressure,s,SIN,10,bar,Heating circuit pressure (alt. layout),,s,IGN:1,,,c700 not exposed
+
+# ===== Sensys menu reads (2001: value, min, max) - only while a Sensys menu is open, ~1 read/s =====
+u,heatpump,menu_flow_temp,HP flow temperature (Sensys menu),,1e,2001,7610,hp_flow_temperature,s,SIN,10,°C,Flow temperature (menu),,s,IGN:4,,,
+u,heatpump,menu_return_temp,HP return temperature (Sensys menu),,1e,2001,7710,hp_return_temperature,s,SIN,10,°C,Return temperature (menu),,s,IGN:4,,,
+u,heatpump,menu_flow,HP water flow (Sensys menu),,1e,2001,6e13,flow,s,SIN,10,L/min,Water flow (menu),,s,IGN:4,,,
+u,heatpump,menu_flow_switch,Flow switch (Sensys menu),,1e,2001,0c45,flow_switch,s,onoff,,,Flow switch (menu),,s,IGN:2,,,
+u,heatpump,menu_evaporator_temp,Evaporator temperature (Sensys menu),,1e,2001,7910,hp_evaporator_temperature,s,SIN,10,°C,Evaporator temperature (menu),,s,IGN:4,,,
+u,heatpump,menu_suction_temp,Suction temperature (Sensys menu),,1e,2001,7217,hp_suction_temperature,s,SIN,10,°C,Suction temperature (menu),,s,IGN:4,,,
+u,heatpump,menu_discharge_temp,Discharge temperature (Sensys menu),,1e,2001,7317,hp_discharge_temperature,s,SIN,10,°C,Discharge temperature (menu),,s,IGN:4,,,
+u,heatpump,menu_condenser_outlet_temp,Condenser outlet temperature (Sensys menu),,1e,2001,7117,hp_condenser_outlet_temperature,s,SIN,10,°C,Condenser outlet temperature (menu),,s,IGN:4,,,
+u,heatpump,menu_outside_air_temp,HP outside air temperature (Sensys menu),,1e,2001,7810,outside_air_temperature,s,SIN,10,°C,Outside air temperature HP sensor (menu),,s,IGN:4,,,
+u,heatpump,menu_compressor_frequency,Compressor frequency (Sensys menu),,1e,2001,cb46,compressor_frequency,s,UCH,,Hz,Compressor frequency (menu),,s,IGN:2,,,
+# 6310 = energy manager's own flow sensor, polled by ebusd (r1) with the same 2001 single read the Sensys menu sends
+# (value,min,max). It reads 0.4-0.5 C lower than the heat pump outlet 7610.
+r1,energymgr,ch_flow_temp,CH flow temperature (energy manager),,18,2001,6310,ch_flow_temperature,s,SIN,10,°C,CH flow temperature (energy manager sensor),,s,IGN:4,,,
+u,energymgr,menu_ch_pressure,Heating circuit pressure (Sensys menu),,18,2001,7547,ch_pressure,s,SIN,10,bar,Heating circuit pressure (menu),,s,IGN:4,,,
+u,energymgr,menu_circulator,Main circulator (Sensys menu),,18,2001,c200,circulator_onoff,s,onoff,,,Main circulator (menu),,s,IGN:2,,,
+
+# ===== energy counter (polled, phase 2) =====
+# 52d9+53d9 = outdoor unit electrical energy, 32-bit counter in 10 kJ (/360 = kWh), confirmed by koszoaron against the cloud.
+# Only the Sensys energy menu or the cloud read it, so ebusd polls it itself with low priority (r5, every ~2-3 min).
+r5,energymgr,hp_energy_consumed,Heat pump energy consumed,,18,2000,52d953d9,,s,IGN:1,,,,hp_energy_consumed,s,ULG,360,kWh,Heat pump energy consumed
+
+# ===== writes: zone 1 mode + comfort temperature only =====
+# Same broadcasts the Sensys sends on this bus (2020 03 c679 02 = Manual; 2020 04 6271 dc00 = 22.0 C), same as koszoaron W1/W3.
+# Tested end to end: the energy manager adopts a write in 6-16 s and the Sensys display shows the new value.
+# ebusd sends them only on MQTT ebusd/energymgr/<name>/set; values outside the lists are refused. Each write goes to EEPROM: no frequent writes.
+w,energymgr,z1_mode_set,Zone 1 mode,,fe,2020,c679,mode,m,UCH,0=off;2=manual;3=scheduled,,
+w,energymgr,z1_comfort_temp_set,Zone 1 comfort temperature (the setpoint in Manual mode),,fe,2020,6271,temp,m,UIN,100=10.0;105=10.5;110=11.0;115=11.5;120=12.0;125=12.5;130=13.0;135=13.5;140=14.0;145=14.5;150=15.0;155=15.5;160=16.0;165=16.5;170=17.0;175=17.5;180=18.0;185=18.5;190=19.0;195=19.5;200=20.0;205=20.5;210=21.0;215=21.5;220=22.0;225=22.5;230=23.0;235=23.5;240=24.0;245=24.5;250=25.0;255=25.5;260=26.0;265=26.5;270=27.0;275=27.5;280=28.0;285=28.5;290=29.0;295=29.5;300=30.0,,

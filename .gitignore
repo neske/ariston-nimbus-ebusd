@@ -1,0 +1,7 @@
+# raw bus captures can contain data from your own system
+*.log
+rawlogs/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db

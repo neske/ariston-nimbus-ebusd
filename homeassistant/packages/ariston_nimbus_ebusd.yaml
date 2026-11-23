@@ -1,0 +1,184 @@
+# Ariston Nimbus S NET R32 80S-T over eBUS (ebusd): derived sensors, daily COP and zone 1 control.
+#
+# Requires the ebusd configuration from ../../ebusd/config and the MQTT integration.
+# The ebusd entity IDs below assume mqtt-hassio.cfg as shipped (area "Heating", English HA):
+# sensor.heating_ebusd_<circuit>_<field name>. If yours differ, search and replace "heating_ebusd_".
+#
+# Install as a package: in configuration.yaml
+#   homeassistant:
+#     packages: !include_dir_named packages
+# then copy this file to /config/packages/ and restart Home Assistant.
+# Everything here can also be created as UI helpers instead; see docs/home-assistant.md.
+
+template:
+  - sensor:
+      # Heat delivered to the water: flow (l/min) / 60 * 4.186 kJ/(kg K) * (flow - return). Goes negative
+      # during defrost, when the heat pump takes heat from the water.
+      - name: "Heat pump heat output"
+        unique_id: nimbus_ebusd_heat_output
+        unit_of_measurement: "kW"
+        device_class: power
+        state_class: measurement
+        icon: mdi:fire
+        availability: >
+          {{ has_value('sensor.heating_ebusd_heatpump_water_flow')
+             and has_value('sensor.heating_ebusd_heatpump_flow_temperature')
+             and has_value('sensor.heating_ebusd_heatpump_return_temperature') }}
+        state: >
+          {% set f = states('sensor.heating_ebusd_heatpump_water_flow') | float(0) %}
+          {% set tf = states('sensor.heating_ebusd_heatpump_flow_temperature') | float(0) %}
+          {% set tr = states('sensor.heating_ebusd_heatpump_return_temperature') | float(0) %}
+          {{ (f / 60 * 4.186 * (tf - tr)) | round(2) }}
+
+      # Instantaneous COP: heat output / electrical power of the outdoor unit (register 7c4f).
+      # Hidden during defrost and standby (heat <= 0 or power <= 150 W).
+      - name: "Heat pump COP"
+        unique_id: nimbus_ebusd_cop
+        state_class: measurement
+        icon: mdi:gauge
+        availability: >
+          {{ has_value('sensor.heat_pump_heat_output')
+             and states('sensor.heat_pump_heat_output') | float(0) > 0
+             and states('sensor.heating_ebusd_heatpump_electrical_power') | float(0) > 150 }}
+        state: >
+          {{ (states('sensor.heat_pump_heat_output') | float(0) * 1000
+              / states('sensor.heating_ebusd_heatpump_electrical_power') | float(1)) | round(2) }}
+
+      - name: "Heat pump delta T"
+        unique_id: nimbus_ebusd_delta_t
+        unit_of_measurement: "K"
+        device_class: temperature_delta
+        state_class: measurement
+        icon: mdi:delta
+        availability: >
+          {{ has_value('sensor.heating_ebusd_heatpump_flow_temperature')
+             and has_value('sensor.heating_ebusd_heatpump_return_temperature') }}
+        state: >
+          {{ (states('sensor.heating_ebusd_heatpump_flow_temperature') | float
+              - states('sensor.heating_ebusd_heatpump_return_temperature') | float) | round(1) }}
+
+      # Compressor frequency only while it runs, so the hourly minimum is not 0.
+      - name: "Heat pump compressor running frequency"
+        unique_id: nimbus_ebusd_compressor_running
+        unit_of_measurement: "Hz"
+        device_class: frequency
+        state_class: measurement
+        icon: mdi:sine-wave
+        availability: "{{ states('sensor.heating_ebusd_heatpump_compressor_frequency') | int(0) > 0 }}"
+        state: "{{ states('sensor.heating_ebusd_heatpump_compressor_frequency') | int }}"
+
+      # Daily COP = heat today / electricity today (energy counter 52d9+53d9). Shown from 0.2 kWh on.
+      - name: "Heat pump COP today"
+        unique_id: nimbus_ebusd_cop_today
+        state_class: measurement
+        icon: mdi:chart-line-variant
+        availability: >
+          {{ has_value('sensor.heat_pump_heat_today') and has_value('sensor.heat_pump_energy_today')
+             and states('sensor.heat_pump_energy_today') | float(0) >= 0.2 }}
+        state: >
+          {{ (states('sensor.heat_pump_heat_today') | float
+              / states('sensor.heat_pump_energy_today') | float) | round(2) }}
+
+  - binary_sensor:
+      # ca46 = 9 (Defrost). The energy manager status stays "Heating Cycle" during a defrost.
+      - name: "Heat pump defrost"
+        unique_id: nimbus_ebusd_defrost
+        device_class: running
+        icon: mdi:snowflake-melt
+        availability: "{{ has_value('sensor.heating_ebusd_heatpump_heat_pump_status') }}"
+        state: "{{ is_state('sensor.heating_ebusd_heatpump_heat_pump_status', 'Defrost') }}"
+
+sensor:
+  # Heat in kWh (Riemann sum of the heat output; defrost is subtracted).
+  - platform: integration
+    name: "Heat pump heat total"
+    unique_id: nimbus_ebusd_heat_total
+    source: sensor.heat_pump_heat_output
+    method: left
+    round: 3
+    max_sub_interval:
+      minutes: 1
+
+  - platform: history_stats
+    name: "Heat pump defrosts today"
+    unique_id: nimbus_ebusd_defrosts_today
+    entity_id: binary_sensor.heat_pump_defrost
+    state: "on"
+    type: count
+    start: "{{ today_at() }}"
+    end: "{{ now() }}"
+
+  - platform: history_stats
+    name: "Heat pump defrost time today"
+    unique_id: nimbus_ebusd_defrost_time_today
+    entity_id: binary_sensor.heat_pump_defrost
+    state: "on"
+    type: time
+    start: "{{ today_at() }}"
+    end: "{{ now() }}"
+
+utility_meter:
+  heat_pump_heat_today:
+    name: "Heat pump heat today"
+    unique_id: nimbus_ebusd_heat_today
+    source: sensor.heat_pump_heat_total
+    cycle: daily
+    # the heat total goes down during a defrost
+    net_consumption: true
+    periodically_resetting: false
+  heat_pump_energy_today:
+    name: "Heat pump energy today"
+    unique_id: nimbus_ebusd_energy_today
+    source: sensor.heating_ebusd_energymgr_heat_pump_energy_consumed
+    cycle: daily
+    periodically_resetting: false
+
+mqtt:
+  # Zone 1 control. Needs the two w-lines in local.csv (z1_mode_set, z1_comfort_temp_set).
+  # Writes are 2020 broadcasts, exactly what the Sensys sends. Every write goes to the energy manager's
+  # EEPROM: do not drive this entity from automations that change it often.
+  climate:
+    - name: "Zone 1 (eBUS)"
+      unique_id: nimbus_ebusd_zone1_climate
+      default_entity_id: climate.nimbus_zone_1
+      icon: mdi:home-thermometer
+      availability_topic: ebusd/global/running
+      payload_available: "true"
+      payload_not_available: "false"
+      modes: ["off", "heat", "auto"]
+      # off = Off, heat = Manual (comfort temperature), auto = time program
+      mode_command_topic: ebusd/energymgr/z1_mode_set/set
+      mode_command_template: "{{ {'off': 'off', 'heat': 'manual', 'auto': 'scheduled'}[value] }}"
+      mode_state_topic: ebusd/energymgr/z1_mode
+      mode_state_template: >
+        {{ {'Off': 'off', 'Manual': 'heat', 'Manual night': 'heat', 'Time program': 'auto'}
+           .get(value_json.z1_mode.value, 'off') }}
+      temperature_command_topic: ebusd/energymgr/z1_comfort_temp_set/set
+      temperature_command_template: "{{ '%.1f' | format((value * 2) | round / 2) }}"
+      temperature_state_topic: ebusd/energymgr/z1_comfort_temp
+      temperature_state_template: "{{ value_json.z1_comfort_temp.value }}"
+      current_temperature_topic: ebusd/sensys/z1_room_temp_200f
+      current_temperature_template: "{{ value_json.z1_room_temp.value }}"
+      action_topic: ebusd/energymgr/z1_heat_request_onoff
+      action_template: "{{ 'heating' if value_json.z1_heat_request_onoff.value == 'on' else 'idle' }}"
+      min_temp: 10
+      max_temp: 30
+      temp_step: 0.5
+      precision: 0.1
+      temperature_unit: "C"
+
+automation:
+  # ebusd only publishes a value when it changes or is read again. After a Home Assistant restart this
+  # asks ebusd to publish everything it has cached, so no entity stays "unknown".
+  - id: nimbus_ebusd_republish_after_start
+    alias: "eBUS: republish ebusd values after Home Assistant start"
+    mode: single
+    triggers:
+      - trigger: homeassistant
+        event: start
+    actions:
+      - delay: "00:00:30"
+      - action: mqtt.publish
+        data:
+          topic: ebusd/list
+          payload: ""
