@@ -1,12 +1,12 @@
-# Ariston Nimbus S NET R32 80S-T – local eBUS integration for Home Assistant
+# Ariston Nimbus Plus S NET R32 – local eBUS integration for Home Assistant
 
-Local monitoring and basic control of an **Ariston Nimbus S NET R32 80S-T** heat pump in Home Assistant.
+Local monitoring and basic control of an **Ariston Nimbus Plus S NET R32** heat pump in Home Assistant.
 It uses [ebusd](https://github.com/john30/ebusd) and an eBUS adapter, and talks over the Ariston BridgeNet
 bus. No cloud is needed. The Ariston cloud integration and the Light Gateway can stay as they are; they work
 side by side.
 
 This is a working configuration from one installation:
-- outdoor unit 80S-T, single zone heating, no domestic hot water, no cooling, **no buffer tank**;
+- single zone heating, no domestic hot water, no cooling, **no buffer tank**;
 - Sensys HD room controller and Light Gateway on the bus.
 
 It builds on [koszoaron/ebusd-ariston-nimbus](https://github.com/koszoaron/ebusd-ariston-nimbus) (Nimbus Plus

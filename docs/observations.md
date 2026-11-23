@@ -1,4 +1,4 @@
-# Observations (Nimbus S NET R32 80S-T, November 2026)
+# Observations (Nimbus Plus S NET R32, November 2026)
 
 Measured on one installation at 1–2 °C outdoor temperature. Single zone, no buffer tank, no DHW.
 

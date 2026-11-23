@@ -1,4 +1,4 @@
-# Ariston Nimbus S NET R32 80S-T: definitions for the frame layouts seen on this installation's bus.
+# Ariston Nimbus Plus S NET R32: definitions for the frame layouts seen on this installation's bus.
 # Written by hand from an ebusd raw capture (2026-11-23). Register meanings follow ariston.csv
 # (koszoaron/ebusd-ariston-nimbus), but the definitions are keyed on the layouts this system sends.
 # The upstream definitions they replace are commented out in ariston.csv ("#local-disabled").

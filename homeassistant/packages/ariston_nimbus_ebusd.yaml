@@ -1,4 +1,4 @@
-# Ariston Nimbus S NET R32 80S-T over eBUS (ebusd): derived sensors, daily COP and zone 1 control.
+# Ariston Nimbus Plus S NET R32 over eBUS (ebusd): derived sensors, daily COP and zone 1 control.
 #
 # Requires the ebusd configuration from ../../ebusd/config and the MQTT integration.
 # The ebusd entity IDs below assume mqtt-hassio.cfg as shipped (area "Heating", English HA):

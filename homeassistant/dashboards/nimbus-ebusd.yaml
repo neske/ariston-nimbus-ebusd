@@ -1,4 +1,4 @@
-# Dashboard for the Ariston Nimbus S NET R32 80S-T over eBUS.
+# Dashboard for the Ariston Nimbus Plus S NET R32 over eBUS.
 # Settings -> Dashboards -> Add dashboard -> New dashboard from scratch, open it,
 # ⋮ -> Edit dashboard -> ⋮ -> Raw configuration editor, paste this file and save.
 # Entity IDs: see the header of ../packages/ariston_nimbus_ebusd.yaml.
