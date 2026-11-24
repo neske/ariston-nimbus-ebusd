@@ -35,7 +35,8 @@ Value width follows the first byte of the register ID:
 | `grp_7317_ca46_cb46` | heat pump 1e, `2000` | 7317 discharge temperature, ca46 heat pump status, cb46 compressor frequency (Hz) |
 | `grp_704f_7c4f` | heat pump 1e, `2000` | 704f expansion valve position, 7c4f **electrical power (W)** of the outdoor unit |
 | `ch_flow_temp` | energy manager 18, `2001` | 6310 energy manager's own flow sensor |
-| `hp_energy_consumed` (`r5`) | energy manager 18, `2000` | 52d9+53d9: 32-bit counter in 10 kJ units, /360 = kWh |
+| `hp_energy_consumed` (`r5`) | energy manager 18, `2000` | 52d9+53d9: 32-bit counter in 10 kJ units, /360 = kWh. It adds up `7c4f`, so it has the same errors |
+| `hp_heat_produced` (`r5`) | energy manager 18, `2000` | 46d9+47d9: heat produced, same format. The energy manager and the Light Gateway read it every 2 h |
 
 All of them are the same telegrams the Light Gateway (2000) or the Sensys menu (2001) send to these devices.
 

@@ -76,8 +76,26 @@ The energy manager status stays "Heating Cycle" during a defrost. Only the heat 
 
 ## Power and energy
 
-- `7c4f` is the outdoor unit's electrical power in W: compressor, fan and electronics. koszoaron compared it
-  with an external meter (r = 0.993); the indoor unit (~100–240 W) is missing from it.
+- `7c4f` is the outdoor unit's electrical power in W: compressor, fan and electronics; the indoor unit
+  (~100–240 W) is missing from it. koszoaron compared it with an external meter (r = 0.993).
+- **On this unit `7c4f` is a coarse estimate, not a measurement.** It moves in steps (about 510 W from 21 to
+  25 Hz, about 715 W at 28–31 Hz) and lags the compressor. At **20 Hz and below it reads 0 W** while the
+  compressor runs. The Light Gateway reads the same register and gets the same values, so the cloud shows them
+  too. A test against the house meter (comfort 23 → 24 °C):
+
+  | Compressor | `7c4f` | House meter |
+  |---|---|---|
+  | 19 Hz | 0 W | ~720 W |
+  | 21 Hz | 507 W | ~765 W |
+  | 29 Hz | 507 W | ~985 W |
+
+  The real load rose evenly (~26 W per Hz), and was about 450 W at 19 Hz.
+- Because the counter `52d9+53d9` adds up `7c4f`, it also stops at ≤ 20 Hz. Overnight (22:00–08:00, mostly
+  18–25 Hz) it counted 3.19 kWh while the house used ~785 W on average. A COP from these counters (7.6 that
+  night) is far too high; ~4 is more realistic. For a real COP, meter the heat pump's circuit.
+- A scan of the whole raw log (11 h) found no other register that follows the compressor or the power.
+- The heat counter `46d9+47d9` (same 10 kJ format) rose by 24.36 kWh from 22:00 to 08:00. The heat computed
+  from flow and delta T gave the same within 1 %.
 - The counter `52d9+53d9` is in 10 kJ units (/360 = kWh). Check: from 17:56 to 18:49 it went from 179.386 to
   180.425 kWh, consistent with 1.2–1.6 kW.
 - Example day start: heat 0.875 kWh / electricity 0.209 kWh, COP 4.19 at ~1 °C outdoor, defrost included.

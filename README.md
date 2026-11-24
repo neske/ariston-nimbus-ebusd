@@ -26,6 +26,7 @@ here. See [NOTICE.md](NOTICE.md).
 | Energy manager: flow target (heating curve), zone mode, heat request, setpoints | broadcasts | ~25 s / on change |
 | Energy manager's own flow sensor (6310) | ebusd polls (r1) | ~30 s |
 | **Energy counter** (kWh, outdoor unit) | ebusd polls (r5) | ~2–3 min |
+| **Heat counter** (kWh produced) | ebusd polls (r5) | ~2–3 min |
 | Room temperature (Sensys) | broadcast | ~2 min |
 | Zone 1 **mode** (off / manual / time program) and **comfort temperature** | **write**, same broadcast as the Sensys | on demand |
 
@@ -92,8 +93,10 @@ tools/                         small raw-log analysis scripts
 - Not implemented: cancelling a temporary Sensys override, DHW, cooling, other zones, plant mode.
 - A few rare settings broadcasts still do not match a definition: winter mode delay/threshold, outdoor
   temperature correction and buffer charge mode.
-- COP uses the outdoor unit's power (register `7c4f`). The indoor unit (circulator, electronics) is not
-  included, so the COP reads slightly high.
+- COP uses the outdoor unit's power (register `7c4f`), and that value is a coarse estimate: it reads 0 W at
+  20 Hz and below, and the energy counter stops with it. The indoor unit is not included either. The COP
+  therefore reads too high, very much so at minimum frequency. See
+  [docs/observations.md](docs/observations.md#power-and-energy).
 
 ## License
 

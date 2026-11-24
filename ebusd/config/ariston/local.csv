@@ -73,6 +73,9 @@ u,energymgr,menu_circulator,Main circulator (Sensys menu),,18,2001,c200,circulat
 # 52d9+53d9 = outdoor unit electrical energy, 32-bit counter in 10 kJ (/360 = kWh), confirmed by koszoaron against the cloud.
 # Only the Sensys energy menu or the cloud read it, so ebusd polls it itself with low priority (r5, every ~2-3 min).
 r5,energymgr,hp_energy_consumed,Heat pump energy consumed,,18,2000,52d953d9,,s,IGN:1,,,,hp_energy_consumed,s,ULG,360,kWh,Heat pump energy consumed
+# 46d9+47d9 = heat produced, same format. Read by the energy manager and the Light Gateway every 2 h. Matched the heat
+# computed from flow and delta T within 1 % over 10 h.
+r5,energymgr,hp_heat_produced,Heat pump heat produced,,18,2000,46d947d9,,s,IGN:1,,,,hp_heat_produced,s,ULG,360,kWh,Heat pump heat produced
 
 # ===== writes: zone 1 mode + comfort temperature only =====
 # Same broadcasts the Sensys sends on this bus (2020 03 c679 02 = Manual; 2020 04 6271 dc00 = 22.0 C), same as koszoaron W1/W3.
