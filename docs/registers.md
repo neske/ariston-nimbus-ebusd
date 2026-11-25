@@ -65,6 +65,30 @@ Recorded from the Sensys on this bus, for example:
 - `70 fe 2020 03 c679 02` sets Manual;
 - `70 fe 2020 04 6271 dc00` sets 22.0 °C.
 
+## Installer menu 4.2 (zone 1 heating curve)
+
+Captured passively on 2026-11-25 while the menu was opened and changed on the Sensys. Opening a menu item
+sends `70 fe 2001 <reg>`; the energy manager answers `13 fe 200e <reg> <value> <min> <max>`. A change is
+`70 fe 2020 <reg> <value>`, and the energy manager confirms it with `13 fe 2010`. These registers are not in
+`local.csv`.
+
+| Menu | Register | Format | Value seen | Range reported |
+|---|---|---|---|---|
+| 4.2.0 Zone temperature range | `0081` | UCH, 0 low temp / 1 high temp | 0 | 0–1 |
+| 4.2.1 Thermoregulation | `c079` | UCH, 0 fixed flow, 1 basic, 2 room only, 3 outdoor only, 4 room + outdoor | 4 | 0–4 |
+| 4.2.2 Slope | `6a71` | UIN /100 | 0.40 | 0.20–1.00 |
+| 4.2.3 Offset | `6471` | SIN /10 °C | +1.0 | −7.0…+7.0 |
+| 4.2.4 Room influence | `c279` | UCH | 2 | 0–80 (the manual says 0–20) |
+| 4.2.5 Max flow temperature | `6071` | UIN /10 °C | 40.0 | 20.0–45.0 |
+| 4.2.6 Min flow temperature | `6171` | UIN /10 °C | 20.0 | 20.0–40.0 |
+| 4.2.7 Thermoregulation logic | `db89` | UCH, 0 classic / 1 smart | 0 | 0–1 |
+| 4.2.8 Quick night setback | `0881` | UCH | 0 | 0–1 |
+| 4.2.9 Heat request mode | `ce79` | UCH, 0 standard, 1 RT time program exclusion, 2 forced | 0 | 0–2 |
+
+At about 3.5 °C outdoor, lowering the slope from 0.40 to 0.30 and raising the offset from +1 to +2 moved the
+flow target `6197` from 31.6 to 30.3 °C. During the changes the energy manager also broadcast `2010 42f7`
+(`18 19` → `18 1b` → `18 1c`); its meaning is unknown.
+
 ## Heat pump status `ca46`
 
 Values seen on this system: **Heating** and **Defrost (9)**. During a defrost the energy manager status
