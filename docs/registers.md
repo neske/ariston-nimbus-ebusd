@@ -115,6 +115,33 @@ The Sensys reads these from the heat pump: `70 1e 2001 <reg>`, reply `<value> <m
 With 55 % minimum PWM this system's pump does not go below ~20 l/min, so at 3–5 kW the delta T stays near 3 K
 although the target is 5 K.
 
+## Installer menus 13.10 and 13.9 (heat pump diagnostics)
+
+The Sensys reads these from the heat pump (`70 1e 2001`). 2-byte registers report min `8000` and max `7fff`
+(no limits). Values from 2026-11-25 18:20, compressor at 21 Hz, ~3.5 °C outdoor.
+
+| Menu | Register | Format | Value seen |
+|---|---|---|---|
+| 13.10.0 Inverter capacity (probably) | `6947` | SIN | 8 (8 kW model; read after the others) |
+| 13.10.1 Actual compressor frequency | `cb46` | UCH Hz | 21 |
+| 13.10.2 Set compressor modulation (probably) | `c446` | UCH | 100 |
+| 13.10.3 Electric heater 1 | `1c45` | UCH 0/1 | 0 |
+| 13.10.5 Fan 1 rpm | `6e4f` | SIN rpm | 655–660 |
+| 13.10.6 Fan 2 rpm | `6f4f` | SIN rpm | 0 |
+| 13.10.7 Expansion valve | `704f` | SIN steps | 50 |
+| 13.10.8 Expansion valve 2 | `554f` | UIN | 0 |
+| 13.9.0 Heat pump mode | `ca46` | UCH | 3 |
+| 13.9.1 Last inverter error | `c54b` | UCH | 0 |
+| 13.9.2 Safety thermostat | `0316` | UCH 0/1 | 1 |
+| 13.9.3 Flowmeter | `6e13` | SIN /10 l/min | 15.7 |
+| 13.9.4 Flow switch | `0c45` | UCH 0/1 | 1 |
+| 13.9.5 Inverter shut-off protection | `1045` | UCH 0/1 | 0 |
+| 13.9.6 Evaporator pressure | `6c4f` | SIN /10 bar | 7.3 |
+| 13.9.7 Condenser pressure | `6d4f` | SIN /10 bar | 19.3–19.5 |
+
+The pressures fit R32 saturation at about −3 °C and 32 °C. Expansion valve 2 is `554f`, so `714f` is not the
+second expansion valve.
+
 ## Heat pump status `ca46`
 
 Values seen on this system: **Heating** and **Defrost (9)**. During a defrost the energy manager status
