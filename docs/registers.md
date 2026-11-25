@@ -198,6 +198,43 @@ of the upstream definitions.
 The Sensys polls every item of the open menu page in a loop, in display order. A second capture on 2026-11-25
 19:05 confirmed the 13.10 and 13.11 rows in this order.
 
+## Installer menus 1.16, 1.17, 1.18, 4.3 and 1.21 (energy manager diagnostics)
+
+Captured on 2026-11-25 19:08–19:10. Read with `70 18 2001` unless noted; 0/1 values are UCH with min 0, max 1.
+
+| Menu | Register | Value seen |
+|---|---|---|
+| 1.16.0 Energy manager status | `c94b` | 2 |
+| 1.16.1 Hydraulic scheme diagnostic | `d4f7` | 4 |
+| 1.16.2 CH flow set T | `6047` (read via `fe`, reply `13 fe 200e`) | 29.9 |
+| 1.16.3 CH flow temperature | `6310` | 30.3 |
+| 1.16.5 DHW storage temperature | `7017` | `7fff` (no tank) |
+| 1.16.7 Heating circuit pressure | `7547` | 1.3 bar |
+| 1.17.0 Room thermostat 1 | `011f` | 1 |
+| 1.17.1 Room thermostat 2 | `021f` | 0 |
+| 1.17.2 AUX input 1 | `1e11` | 0 |
+| 1.17.3 AUX input 2 | `1f11` | 1 |
+| 1.17.4 HV input 1 | `1d11` | 0 |
+| 1.17.5 HV input 2 | `1c11` | 0 |
+| 1.18.0 Main circulator | `c200` | 1 |
+| 1.18.1 Tank electric heater (0 off, 1 on, 2 integration, 3 lockout) | `d8f8` | 0 |
+| 1.18.2 HC pump 2 | `c700` | 1 |
+| 1.18.3 Diverter valve (0 DHW, 1 CH) | `0601` | 1 |
+| 1.18.4 Diverter valve 2 (0 CH, 1 cooling) | `0701` | 0 |
+| 1.18.5–1.18.7 CH backup resistance 1–3 | `1403`, `1503`, `1603` | 0 |
+| 1.18.8 AUX output 1 | `1803` | 0 |
+| 1.18.9 AUX output 2 | `1a03` | 0 |
+| (two more rows, not in the manual) | `0cf5`, `0df5` | 0 |
+| 4.3.0 Room T | `7118` (`70 fe 2001`; the Sensys answers itself) | 24.1 |
+| 4.3.1 Room T setpoint | `6996` (via `fe`) | 24.0 |
+| 4.3.4 Heat request Z1 | `0191` (via `fe`) | 1 |
+| 4.3.7 Relative humidity | `c9c1` (via `fe`) | 37 % |
+| 4.3.8 Zone flow temperature setpoint | `6197` (via `fe`) | 29.7 |
+
+1.16.6, 4.3.2, 4.3.3 and 4.3.5 were not shown on this system. Menu 1.21.0 (last 10 errors) reads
+`70 18 2002 04 <n> 00` for n = 0…9; each reply has 7 bytes. Two entries were filled
+(`9e 00 00 00 1a 04 17` and `ff 00 01 08 1a 04 17`), and the format is not decoded.
+
 ## Heat pump status `ca46`
 
 Values seen on this system: **Heating** and **Defrost (9)**. During a defrost the energy manager status
