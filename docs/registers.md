@@ -102,6 +102,19 @@ reply `<value> <min> <max>`, all UCH. All values are the factory defaults.
 | 1.6.3 Pump speed control | `c32a` | 2 = modulating (0 low, 1 high) | 0–2 |
 | 1.6.4 Antifreeze HP circulator speed | `c58f` | 1 = medium (0 low, 2 high) | 0–2 |
 
+## Installer menu 13.4 (heat pump water circulation)
+
+The Sensys reads these from the heat pump: `70 1e 2001 <reg>`, reply `<value> <min> <max>`.
+
+| Menu | Register | Format | Value seen | Range reported |
+|---|---|---|---|---|
+| 13.4.4 Target delta T for pump modulation | `7b2b` | UIN /10 K | 5.0 | 5.0–20.0 |
+| 13.4.5 Max PWM pump | `d32c` | UCH % | 100 | 55–100 |
+| 13.4.6 Min PWM pump | `d22c` | UCH % | 55 | 40–100 |
+
+With 55 % minimum PWM this system's pump does not go below ~20 l/min, so at 3–5 kW the delta T stays near 3 K
+although the target is 5 K.
+
 ## Heat pump status `ca46`
 
 Values seen on this system: **Heating** and **Defrost (9)**. During a defrost the energy manager status
