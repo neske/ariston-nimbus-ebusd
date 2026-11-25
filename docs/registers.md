@@ -87,7 +87,8 @@ sends `70 fe 2001 <reg>`; the energy manager answers `13 fe 200e <reg> <value> <
 
 At about 3.5 °C outdoor, lowering the slope from 0.40 to 0.30 and raising the offset from +1 to +2 moved the
 flow target `6197` from 31.6 to 30.3 °C. During the changes the energy manager also broadcast `2010 42f7`
-(`18 19` → `18 1b` → `18 1c`); its meaning is unknown.
+(`18 19` → `18 1b` → `18 1c`); its meaning is unknown. Both values were set back (slope 0.40, offset 0.0)
+at 18:10.
 
 ## Installer menu 1.6 (water circulation)
 
@@ -162,6 +163,24 @@ Menu 4.1 is read with `70 fe 2001` (reply `13 fe 200e`), menu 1.5 with `70 18 20
 This explains the unmatched settings broadcasts: on this bus the energy manager groups them as
 `13 fe 2020 7971 c800 7a71 2c01 0782 00` and `13 fe 2020 0520 01 602b c003 7426 0000`, not in the layouts
 of the upstream definitions.
+
+## Installer menus 13.11, 13.7 and 1.7
+
+| Menu | Register | Read as | Value seen |
+|---|---|---|---|
+| 13.11.0 Compressor on/off | `1145` | `70 1e 2001`, UCH 0/1 | 1 |
+| 13.11.1 Compressor preheating | `1245` | same | 0 |
+| 13.11.2 Fan 1 status | `1445` | same | 1 |
+| 13.11.3 Fan 2 status | `1545` | same | 0 |
+| 13.11.4 4-way valve heat/cool | `1345` | same | 0 |
+| 13.11.5 Base panel heater | `1645` | same | 0 |
+| 13.7.0 HP running hours (h/10) | `40d1` | `70 1e 2000`, UIN | 40 |
+| 13.7.1 HP on cycles (n/10) | `40d8`+`41d8` | `70 1e 2000`, 32-bit | 107 |
+| 13.7.2 HP defrost hours (h/10) | `47d1` | `70 1e 2000`, UIN | 0 |
+| 1.7.1 Boost time | `602b` | `70 fe 2001`, UIN s | 960 (16 min), range 0–3600 |
+| 1.7.2 FlowT HP offset | `7d2b` | `70 18 2001`, SIN /10 °C | 0.0, range 0.0–10.0 |
+
+The 13.11 rows follow the menu order. They were not checked by changing a state.
 
 ## Heat pump status `ca46`
 
