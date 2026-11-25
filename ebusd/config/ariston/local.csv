@@ -83,3 +83,25 @@ r5,energymgr,hp_heat_produced,Heat pump heat produced,,18,2000,46d947d9,,s,IGN:1
 # ebusd sends them only on MQTT ebusd/energymgr/<name>/set; values outside the lists are refused. Each write goes to EEPROM: no frequent writes.
 w,energymgr,z1_mode_set,Zone 1 mode,,fe,2020,c679,mode,m,UCH,0=off;2=manual;3=scheduled,,
 w,energymgr,z1_comfort_temp_set,Zone 1 comfort temperature (the setpoint in Manual mode),,fe,2020,6271,temp,m,UIN,100=10.0;105=10.5;110=11.0;115=11.5;120=12.0;125=12.5;130=13.0;135=13.5;140=14.0;145=14.5;150=15.0;155=15.5;160=16.0;165=16.5;170=17.0;175=17.5;180=18.0;185=18.5;190=19.0;195=19.5;200=20.0;205=20.5;210=21.0;215=21.5;220=22.0;225=22.5;230=23.0;235=23.5;240=24.0;245=24.5;250=25.0;255=25.5;260=26.0;265=26.5;270=27.0;275=27.5;280=28.0;285=28.5;290=29.0;295=29.5;300=30.0,,
+
+# ===== 2026-11-25: heating curve (4.2.2-4.2.4) and HP pump PWM (13.4.5, 13.4.6), user request =====
+# Captured from the Sensys installer menus on this bus (docs/registers.md). Writes go to EEPROM: change by hand only.
+# State: the energy manager answers every 2001 menu read with 13 fe 200e <reg> value min max, confirms a change with
+# 13 fe 2010 <reg> value 00 [...], and repeats the settings every 30 min in 2020 groups.
+b,energymgr,z1_slope_200e,Zone 1 heating curve slope (200e),13,fe,200e,6a71,z1_slope,m,UIN,100,,Zone 1 heating curve slope (menu read),,m,IGN:4,,,
+b,energymgr,z1_slope_2010,Zone 1 heating curve slope (2010),13,fe,2010,6a71,z1_slope,m,UIN,100,,Zone 1 heating curve slope (confirmation),,m,IGN:1,,,
+b,energymgr,grp_6971_6a71,2020 broadcast 6971+6a71+6b71,13,fe,2020,6971,,m,IGN:2,,,6971 not exposed,,m,IGN:2,,,6a71,z1_slope,m,UIN,100,,Zone 1 heating curve slope (settings broadcast)
+b,energymgr,z1_curve_offset_2010,Zone 1 heating curve offset (2010),13,fe,2010,6471,z1_heat_curve_offset,m,SIN,10,°C,Zone 1 heating curve offset (confirmation),,m,IGN:1,,,
+b,energymgr,z1_room_influence_200e,Zone 1 room influence (200e),13,fe,200e,c279,z1_room_influence,m,UCH,,,Zone 1 room influence (menu read),,m,IGN:2,,,
+b,energymgr,z1_room_influence_2010,Zone 1 room influence (2010),13,fe,2010,c279,z1_room_influence,m,UCH,,,Zone 1 room influence (confirmation),,m,IGN:1,,,
+b,energymgr,grp_6c71_c079_c279,2020 broadcast 6c71+c079+c279,13,fe,2020,6c71,,m,IGN:2,,,6c71 not exposed,,m,IGN:2,,,c079,z1_thermoregulation,m,UCH,0=fixed flow;1=basic;2=room only;3=outdoor only;4=room and outdoor,,Zone 1 thermoregulation (4.2.1),,m,IGN:2,,,c279,z1_room_influence,m,UCH,,,Zone 1 room influence (settings broadcast)
+# Pump PWM limits on the heat pump: the same 2001 read the Sensys menu 13.4 sends (value, min, max); lowest priority.
+r9,heatpump,pump_pwm_min,Pump min PWM (13.4.6),,1e,2001,d22c,pump_pwm_min,s,UCH,,%,Pump min PWM,,s,IGN:2,,,
+r9,heatpump,pump_pwm_max,Pump max PWM (13.4.5),,1e,2001,d32c,pump_pwm_max,s,UCH,,%,Pump max PWM,,s,IGN:2,,,
+# Writes. Seen from the Sensys: 70 fe 2020 6a71 1e00, 70 fe 2020 6471 1400, 70 fe 2020 c279 03, 70 1e 2020 d22c 2d.
+# d32c (max PWM) was not written on this bus; it is assumed to work like d22c. Value lists limit what can be sent.
+w,energymgr,z1_slope_set,Zone 1 heating curve slope (4.2.2),,fe,2020,6a71,slope,m,UIN,20=0.20;25=0.25;30=0.30;35=0.35;40=0.40;45=0.45;50=0.50;55=0.55;60=0.60;65=0.65;70=0.70;75=0.75;80=0.80;85=0.85;90=0.90;95=0.95;100=1.00,,
+w,energymgr,z1_curve_offset_set,Zone 1 heating curve offset (4.2.3),,fe,2020,6471,offset,m,SIN,10,,
+w,energymgr,z1_room_influence_set,Zone 1 room influence (4.2.4),,fe,2020,c279,value,m,UCH,0=0;1=1;2=2;3=3;4=4;5=5;6=6;7=7;8=8;9=9;10=10;11=11;12=12;13=13;14=14;15=15;16=16;17=17;18=18;19=19;20=20,,
+w,heatpump,pump_pwm_min_set,Pump min PWM (13.4.6),,1e,2020,d22c,value,m,UCH,40=40;41=41;42=42;43=43;44=44;45=45;46=46;47=47;48=48;49=49;50=50;51=51;52=52;53=53;54=54;55=55;56=56;57=57;58=58;59=59;60=60;61=61;62=62;63=63;64=64;65=65;66=66;67=67;68=68;69=69;70=70;71=71;72=72;73=73;74=74;75=75;76=76;77=77;78=78;79=79;80=80;81=81;82=82;83=83;84=84;85=85;86=86;87=87;88=88;89=89;90=90;91=91;92=92;93=93;94=94;95=95;96=96;97=97;98=98;99=99;100=100,,
+w,heatpump,pump_pwm_max_set,Pump max PWM (13.4.5),,1e,2020,d32c,value,m,UCH,45=45;46=46;47=47;48=48;49=49;50=50;51=51;52=52;53=53;54=54;55=55;56=56;57=57;58=58;59=59;60=60;61=61;62=62;63=63;64=64;65=65;66=66;67=67;68=68;69=69;70=70;71=71;72=72;73=73;74=74;75=75;76=76;77=77;78=78;79=79;80=80;81=81;82=82;83=83;84=84;85=85;86=86;87=87;88=88;89=89;90=90;91=91;92=92;93=93;94=94;95=95;96=96;97=97;98=98;99=99;100=100,,
