@@ -89,6 +89,19 @@ At about 3.5 °C outdoor, lowering the slope from 0.40 to 0.30 and raising the o
 flow target `6197` from 31.6 to 30.3 °C. During the changes the energy manager also broadcast `2010 42f7`
 (`18 19` → `18 1b` → `18 1c`); its meaning is unknown.
 
+## Installer menu 1.6 (water circulation)
+
+Captured the same way on 2026-11-25. Here the Sensys reads the energy manager directly: `70 18 2001 <reg>`,
+reply `<value> <min> <max>`, all UCH. All values are the factory defaults.
+
+| Menu | Register | Value seen | Range reported |
+|---|---|---|---|
+| 1.6.0 CH pump prerun time | `d527` | 30 s | 30–255 |
+| 1.6.1 Time for prerun new attempt | `d627` | 90 s | 0–100 |
+| 1.6.2 CH pump overrun | `d727` | 3 min | 0–16 |
+| 1.6.3 Pump speed control | `c32a` | 2 = modulating (0 low, 1 high) | 0–2 |
+| 1.6.4 Antifreeze HP circulator speed | `c58f` | 1 = medium (0 low, 2 high) | 0–2 |
+
 ## Heat pump status `ca46`
 
 Values seen on this system: **Heating** and **Defrost (9)**. During a defrost the energy manager status
