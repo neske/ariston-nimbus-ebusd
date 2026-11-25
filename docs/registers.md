@@ -116,6 +116,21 @@ The Sensys reads these from the heat pump: `70 1e 2001 <reg>`, reply `<value> <m
 With 55 % minimum PWM this system's pump does not go below ~20 l/min, so at 3–5 kW the delta T stays near 3 K
 although the target is 5 K.
 
+## Installer menu 13.8 (heat pump diagnostics, inputs 1)
+
+Polled by the Sensys in this display order (`70 1e 2001`, SIN /10 °C), 2026-11-25 19:01, compressor 19 Hz:
+
+| Menu | Register | Sensor (manual) | Value seen |
+|---|---|---|---|
+| 13.8.0 Outside air temperature | `7810` | TA | 4.0 |
+| 13.8.1 HP water flow temp | `7610` | LWT | 30.7 |
+| 13.8.2 HP water return temp | `7710` | EWT | 28.6 |
+| 13.8.3 HP evaporator temp | `7910` | TE | 1.0 |
+| 13.8.4 HP suction temp | `7217` | TS | 2.0 |
+| 13.8.5 HP discharge temp | `7317` | TD | 29.4 |
+| 13.8.6 HP condenser outlet temp | `7117` | TR (liquid line at the indoor plate exchanger) | 28.7 |
+| 13.8.7 TEO | `7417` | TEO | 2.0 |
+
 ## Installer menus 13.10 and 13.9 (heat pump diagnostics)
 
 The Sensys reads these from the heat pump (`70 1e 2001`). 2-byte registers report min `8000` and max `7fff`
@@ -123,9 +138,9 @@ The Sensys reads these from the heat pump (`70 1e 2001`). 2-byte registers repor
 
 | Menu | Register | Format | Value seen |
 |---|---|---|---|
-| 13.10.0 Inverter capacity (probably) | `6947` | SIN | 8 (8 kW model; read after the others) |
+| 13.10.0 Inverter capacity | `6947` | SIN | 8 (8 kW model) |
 | 13.10.1 Actual compressor frequency | `cb46` | UCH Hz | 21 |
-| 13.10.2 Set compressor modulation (probably) | `c446` | UCH | 100 |
+| 13.10.2 Set compressor modulation | `c446` | UCH | 100 |
 | 13.10.3 Electric heater 1 | `1c45` | UCH 0/1 | 0 |
 | 13.10.5 Fan 1 rpm | `6e4f` | SIN rpm | 655–660 |
 | 13.10.6 Fan 2 rpm | `6f4f` | SIN rpm | 0 |
@@ -180,7 +195,8 @@ of the upstream definitions.
 | 1.7.1 Boost time | `602b` | `70 fe 2001`, UIN s | 960 (16 min), range 0–3600 |
 | 1.7.2 FlowT HP offset | `7d2b` | `70 18 2001`, SIN /10 °C | 0.0, range 0.0–10.0 |
 
-The 13.11 rows follow the menu order. They were not checked by changing a state.
+The Sensys polls every item of the open menu page in a loop, in display order. A second capture on 2026-11-25
+19:05 confirmed the 13.10 and 13.11 rows in this order.
 
 ## Heat pump status `ca46`
 
