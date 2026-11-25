@@ -99,7 +99,7 @@ b,energymgr,grp_6c71_c079_c279,2020 broadcast 6c71+c079+c279,13,fe,2020,6c71,,m,
 r9,heatpump,pump_pwm_min,Pump min PWM (13.4.6),,1e,2001,d22c,pump_pwm_min,s,UCH,,%,Pump min PWM,,s,IGN:2,,,
 r9,heatpump,pump_pwm_max,Pump max PWM (13.4.5),,1e,2001,d32c,pump_pwm_max,s,UCH,,%,Pump max PWM,,s,IGN:2,,,
 # Writes. Seen from the Sensys: 70 fe 2020 6a71 1e00, 70 fe 2020 6471 1400, 70 fe 2020 c279 03, 70 1e 2020 d22c 2d.
-# d32c (max PWM) was not written on this bus; it is assumed to work like d22c. Value lists limit what can be sent.
+# d32c (max PWM): first written by ebusd, 31 1e 2020 d32c 64, ACKed by the heat pump and shown by the Sensys (2026-11-25). Value lists limit what can be sent.
 w,energymgr,z1_slope_set,Zone 1 heating curve slope (4.2.2),,fe,2020,6a71,slope,m,UIN,20=0.20;25=0.25;30=0.30;35=0.35;40=0.40;45=0.45;50=0.50;55=0.55;60=0.60;65=0.65;70=0.70;75=0.75;80=0.80;85=0.85;90=0.90;95=0.95;100=1.00,,
 w,energymgr,z1_curve_offset_set,Zone 1 heating curve offset (4.2.3),,fe,2020,6471,offset,m,SIN,10,,
 w,energymgr,z1_room_influence_set,Zone 1 room influence (4.2.4),,fe,2020,c279,value,m,UCH,0=0;1=1;2=2;3=3;4=4;5=5;6=6;7=7;8=8;9=9;10=10;11=11;12=12;13=13;14=14;15=15;16=16;17=17;18=18;19=19;20=20,,
