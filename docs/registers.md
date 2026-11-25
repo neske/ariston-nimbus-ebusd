@@ -142,6 +142,27 @@ The Sensys reads these from the heat pump (`70 1e 2001`). 2-byte registers repor
 The pressures fit R32 saturation at about −3 °C and 32 °C. Expansion valve 2 is `554f`, so `714f` is not the
 second expansion valve.
 
+## Installer menus 4.1 and 1.5 (winter mode, energy manager parameters)
+
+Menu 4.1 is read with `70 fe 2001` (reply `13 fe 200e`), menu 1.5 with `70 18 2001`.
+
+| Menu | Register | Format | Value seen | Range reported |
+|---|---|---|---|---|
+| 4.1.0 Automatic winter mode | `0781` | UCH 0/1 | 0 (off) | 0–1 |
+| 4.1.1 Automatic winter mode threshold | `7971` | SIN /10 °C | 20.0 | 0.0–30.0 |
+| 4.1.2 Automatic winter mode delay | `7a71` | UIN min | 300 | 0–600 |
+| 1.5.0 Min pressure | `c42a` | UCH /10 bar | 0.4 | 0.3–0.4 |
+| 1.5.1 Warning pressure | `c52a` | UCH /10 bar | 0.6 | 0.4–0.8 |
+| 1.5.2 Outdoor T for boiler disabling | `7126` | SIN /10 °C | 35.0 | −25.0–40.0 |
+| 1.5.3 Outdoor T for HP disabling | `7226` | SIN /10 °C | −25.0 | −25.0–35.0 |
+| 1.5.4 HP disabling outdoor T, DHW | `638f` | SIN /10 °C | −25.0 | −25.0–35.0 |
+| 1.5.5 External temperature correction | `7426` | SIN /10 °C | 0.0 | −3.0–+3.0 |
+| 1.5.9 Filling pressure | `c02a` | UCH /10 bar | 1.2 | 0.9–1.5 |
+
+This explains the unmatched settings broadcasts: on this bus the energy manager groups them as
+`13 fe 2020 7971 c800 7a71 2c01 0782 00` and `13 fe 2020 0520 01 602b c003 7426 0000`, not in the layouts
+of the upstream definitions.
+
 ## Heat pump status `ca46`
 
 Values seen on this system: **Heating** and **Defrost (9)**. During a defrost the energy manager status
